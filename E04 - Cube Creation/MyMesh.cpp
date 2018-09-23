@@ -15,8 +15,18 @@ void MyMesh::GenerateCircle(float a_fRadius, int a_nSubdivisions, vector3 a_v3Co
 	/*
 		Calculate a_nSubdivisions number of points around a center point in a radial manner
 		then call the AddTri function to generate a_nSubdivision number of faces
+		360/subdivisions into cos and sin and add it around circle
 	*/
-
+	float degreeChange = 0; //hold the number of degrees for each triangle
+	degreeChange = (2.0f * PI) / a_nSubdivisions; //set to how bit it is for number of divisions
+	for (int i = 0; i < a_nSubdivisions + 1; i++)
+	{
+		if (i == 0) //start at 0 for first triangle
+			AddTri(vector3(0, 0, 0), vector3(cos(0) * a_fRadius, 0, 0), vector3( cos(degreeChange) * a_fRadius, sin(degreeChange) * a_fRadius,0));
+		else	//start a zero,		use the point from the previous triangle,												  make point for the new degree change
+			AddTri(vector3(0,0,0), vector3(cos((i - 1) * degreeChange) * a_fRadius, sin((i-1) * degreeChange) * a_fRadius, 0), vector3(cos(i* degreeChange) * a_fRadius, sin(i *degreeChange) * a_fRadius, 0));
+	}
+	
 	// Adding information about color
 	CompleteMesh(a_v3Color);
 	CompileOpenGL3X();
@@ -175,7 +185,7 @@ void MyMesh::AddTri(vector3 a_vBottomLeft, vector3 a_vBottomRight, vector3 a_vTo
 {
 	//C
 	//| \
-		//A--B
+	//A--B
 //This will make the triangle A->B->C 
 	AddVertexPosition(a_vBottomLeft);
 	AddVertexPosition(a_vBottomRight);
