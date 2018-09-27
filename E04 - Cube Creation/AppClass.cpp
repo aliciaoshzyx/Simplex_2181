@@ -4,7 +4,7 @@ void Application::InitVariables(void)
 	//Make MyMesh object
 	m_pMesh = new MyMesh();
 	//Generate a circle
-	m_pMesh->GenerateCircle(2.0f, 5, C_RED);
+	m_pMesh->GenerateCircle(2.0f, 50, C_RED);
 }
 void Application::Update(void)
 {
@@ -23,7 +23,7 @@ void Application::Display(void)
 	ClearScreen();
 
 	//Render the mesh
-	m_pMesh->Render(m_pCameraMngr->GetProjectionMatrix(), m_pCameraMngr->GetViewMatrix(), ToMatrix4(m_qArcBall));
+	m_pMesh->Render(m_pCameraMngr->GetProjectionMatrix(), m_pCameraMngr->GetViewMatrix(), ToMatrix4(m_qArcBall)); //multiply by the matrix on last boi
 		
 	// draw a skybox
 	m_pMeshMngr->AddSkyboxToRenderList();

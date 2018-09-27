@@ -1,4 +1,5 @@
 #include "MyMesh.h"
+#include <vector>
 void MyMesh::Init(void)
 {
 	m_bBinded = false;
@@ -276,7 +277,25 @@ void MyMesh::GenerateCone(float a_fRadius, float a_fHeight, int a_nSubdivisions,
 	Init();
 
 	// Replace this with your code
-	GenerateCube(a_fRadius * 2.0f, a_v3Color);
+	//base 
+	float degreeChange = 0; //hold the number of degrees for each triangle
+	degreeChange = (2.0f * PI) / a_nSubdivisions; //set to how bit it is for number of divisions
+	for (int i = 0; i < a_nSubdivisions + 1; i++)
+	{
+		if (i == 0) {//start at 0 for first triangle
+			//base
+			AddTri(vector3(0, 0, 0), vector3(cos(0) * a_fRadius, 0, 0), vector3(cos(degreeChange) * a_fRadius, 0, sin(degreeChange) * a_fRadius));
+			//side
+			AddTri(vector3(0, a_fHeight, 0), vector3(cos(0) * a_fRadius, 0, 0), vector3(cos(degreeChange) * a_fRadius, 0, sin(degreeChange) * a_fRadius));
+		}
+		else {	//start a zero,		use the point from the previous triangle,												  make point for the new degree change
+			//base
+			AddTri(vector3(0, 0, 0), vector3(cos((i - 1) * degreeChange) * a_fRadius, 0, sin((i - 1) * degreeChange) * a_fRadius), vector3(cos(i* degreeChange) * a_fRadius, 0, sin(i *degreeChange) * a_fRadius));
+			//side
+			AddTri(vector3(0, a_fHeight, 0), vector3(cos(i* degreeChange) * a_fRadius, 0, sin(i *degreeChange) * a_fRadius), vector3(cos((i - 1) * degreeChange) * a_fRadius, 0, sin((i - 1) * degreeChange) * a_fRadius));
+		}
+
+	}
 	// -------------------------------
 
 	// Adding information about color
@@ -300,7 +319,27 @@ void MyMesh::GenerateCylinder(float a_fRadius, float a_fHeight, int a_nSubdivisi
 	Init();
 
 	// Replace this with your code
-	GenerateCube(a_fRadius * 2.0f, a_v3Color);
+	float degreeChange = 0; //hold the number of degrees for each triangle
+	degreeChange = (2.0f * PI) / a_nSubdivisions; //set to how bit it is for number of divisions
+	for (int i = 0; i < a_nSubdivisions + 1; i++)
+	{
+		if (i == 0) { //start at 0 for first triangle
+			//base
+			AddTri(vector3(0, 0, 0), vector3(cos(0) * a_fRadius, 0, 0), vector3(cos(degreeChange) * a_fRadius, 0, sin(degreeChange) * a_fRadius));
+			//side
+			AddQuad( vector3(cos(degreeChange) * a_fRadius, 0, sin(degreeChange) * a_fRadius),vector3(cos(0) * a_fRadius, 0, 0), vector3(cos(degreeChange) * a_fRadius, a_fHeight, sin(degreeChange) * a_fRadius), vector3(cos(0) * a_fRadius, a_fHeight, 0));
+			//top
+			AddTri(vector3(0, a_fHeight, 0), vector3(cos(degreeChange) * a_fRadius, a_fHeight, sin(degreeChange) * a_fRadius), vector3(cos(0) * a_fRadius, a_fHeight, 0));
+		}
+		else {	//start a zero,		use the point from the previous triangle,												  make point for the new degree change
+			//base
+			AddTri(vector3(0, 0, 0), vector3(cos((i - 1) * degreeChange) * a_fRadius, 0, sin((i - 1) * degreeChange) * a_fRadius), vector3(cos(i* degreeChange) * a_fRadius, 0, sin(i *degreeChange) * a_fRadius));
+			//side
+			AddQuad(vector3(cos(i* degreeChange) * a_fRadius, 0, sin(i *degreeChange) * a_fRadius), vector3(cos((i - 1) * degreeChange) * a_fRadius, 0, sin((i - 1) * degreeChange) * a_fRadius), vector3(cos(i* degreeChange) * a_fRadius, a_fHeight, sin(i *degreeChange) * a_fRadius), vector3(cos((i - 1) * degreeChange) * a_fRadius, a_fHeight, sin((i - 1) * degreeChange) * a_fRadius));
+			//top
+			AddTri(vector3(0, a_fHeight, 0), vector3(cos(i* degreeChange) * a_fRadius, a_fHeight, sin(i *degreeChange) * a_fRadius), vector3(cos((i - 1) * degreeChange) * a_fRadius, a_fHeight, sin((i - 1) * degreeChange) * a_fRadius));
+		}
+	}
 	// -------------------------------
 
 	// Adding information about color
@@ -330,7 +369,33 @@ void MyMesh::GenerateTube(float a_fOuterRadius, float a_fInnerRadius, float a_fH
 	Init();
 
 	// Replace this with your code
-	GenerateCube(a_fOuterRadius * 2.0f, a_v3Color);
+	float degreeChange = 0; //hold the number of degrees for each triangle
+	degreeChange = (2.0f * PI) / a_nSubdivisions; //set to how bit it is for number of divisions
+	for (int i = 0; i < a_nSubdivisions + 1; i++)
+	{
+		if (i == 0) { //start at 0 for first division
+			//base
+			AddQuad(vector3(cos(0) * a_fOuterRadius, 0, 0), vector3(cos(degreeChange) * a_fOuterRadius, 0, sin(degreeChange) * a_fOuterRadius), vector3(cos(0) * a_fInnerRadius, 0, 0), vector3(cos(degreeChange) * a_fInnerRadius, 0, sin(degreeChange) * a_fInnerRadius));
+			//AddTri(vector3(0, 0, 0), vector3(cos(0) * a_fRadius, 0, 0), vector3(cos(degreeChange) * a_fRadius, 0, sin(degreeChange) * a_fRadius));
+			//outside
+			AddQuad(vector3(cos(degreeChange) * a_fOuterRadius, 0, sin(degreeChange) * a_fOuterRadius), vector3(cos(0) * a_fOuterRadius, 0, 0), vector3(cos(degreeChange) * a_fOuterRadius, a_fHeight, sin(degreeChange) * a_fOuterRadius), vector3(cos(0) * a_fOuterRadius, a_fHeight, 0));
+			//inside
+			AddQuad(vector3(cos(0) * a_fInnerRadius, 0, 0), vector3(cos(degreeChange) * a_fInnerRadius, 0, sin(degreeChange) * a_fInnerRadius), vector3(cos(0) * a_fInnerRadius, a_fHeight, 0), vector3(cos(degreeChange) * a_fInnerRadius, a_fHeight, sin(degreeChange) * a_fInnerRadius));
+			//top
+			AddQuad( vector3(cos(degreeChange) * a_fOuterRadius, a_fHeight, sin(degreeChange) * a_fOuterRadius),vector3(cos(0) * a_fOuterRadius, a_fHeight, 0) , vector3(cos(degreeChange) * a_fInnerRadius, a_fHeight, sin(degreeChange) * a_fInnerRadius), vector3(cos(0) * a_fInnerRadius, a_fHeight, 0));
+		}
+		else {	//start a zero,		use the point from the previous division												  make point for the new degree change
+			//base
+			AddQuad(vector3(cos((i - 1)*degreeChange) * a_fOuterRadius, 0, sin((i - 1)*degreeChange) * a_fOuterRadius), vector3(cos(i*degreeChange) * a_fOuterRadius, 0, sin(i*degreeChange) * a_fOuterRadius), vector3(cos((i-1) *degreeChange) * a_fInnerRadius, 0, sin((i-1)*degreeChange) * a_fInnerRadius), vector3(cos(i*degreeChange) * a_fInnerRadius, 0, sin(i*degreeChange) * a_fInnerRadius));
+			//outside
+			AddQuad(  vector3(cos(i*degreeChange) * a_fOuterRadius, 0, sin(i*degreeChange) * a_fOuterRadius), vector3(cos((i - 1)*degreeChange) * a_fOuterRadius, 0, sin((i - 1)*degreeChange) * a_fOuterRadius), vector3(cos(i*degreeChange) * a_fOuterRadius, a_fHeight, sin(i*degreeChange) * a_fOuterRadius), vector3(cos((i - 1)*degreeChange) * a_fOuterRadius, a_fHeight, sin((i - 1)*degreeChange) * a_fOuterRadius));
+			//inside
+			AddQuad( vector3(cos((i - 1)*degreeChange) * a_fInnerRadius, 0, sin((i - 1)*degreeChange) * a_fInnerRadius), vector3(cos(i*degreeChange) * a_fInnerRadius, 0, sin(i*degreeChange) * a_fInnerRadius), vector3(cos((i - 1)*degreeChange) * a_fInnerRadius, a_fHeight, sin((i - 1)*degreeChange) * a_fInnerRadius), vector3(cos(i*degreeChange) * a_fInnerRadius, a_fHeight, sin(i*degreeChange) * a_fInnerRadius));
+			//top
+			AddQuad(vector3(cos(i*degreeChange) * a_fOuterRadius, a_fHeight, sin(i*degreeChange) * a_fOuterRadius), vector3(cos((i - 1)*degreeChange) * a_fOuterRadius, a_fHeight, sin((i - 1)*degreeChange) * a_fOuterRadius), vector3(cos(i*degreeChange) * a_fInnerRadius, a_fHeight, sin(i*degreeChange) * a_fInnerRadius), vector3(cos((i - 1) *degreeChange) * a_fInnerRadius, a_fHeight, sin((i - 1)*degreeChange) * a_fInnerRadius));
+
+			}
+	}
 	// -------------------------------
 
 	// Adding information about color
@@ -362,7 +427,31 @@ void MyMesh::GenerateTorus(float a_fOuterRadius, float a_fInnerRadius, int a_nSu
 	Init();
 
 	// Replace this with your code
-	GenerateCube(a_fOuterRadius * 2.0f, a_v3Color);
+	/*
+	float degreeChange = 0; //hold the number of degrees for each iteration of torus
+	degreeChange = (2.0f * PI) / a_nSubdivisionsA; //set to how bit it is for number of divisions
+	float sDegreeChange = 0; // holds degree change for circle in torus
+	float tubeRadius = (a_fOuterRadius - a_fInnerRadius) / 2;
+	for (int i = 0; i < a_nSubdivisionsB + 1; i++)
+	{
+		if (i == 0) { //start at 0 for first 
+			//first small circle point
+			vector3(a_fOuterRadius, 0, 0);
+			//second small circle point
+			vector3(a_fInnerRadius + tubeRadius + cos((i - 1) * sDegreeChange) * tubeRadius, sin((i - 1) * sDegreeChange) * tubeRadius, 0);
+			//2nd 1st small circle point
+			vector3(cos(i * sDegreeChange) * a_fOuterRadius, sin((i - 1) * sDegreeChange) * a_fOuterRadius,0);
+			//2nd 2nd small circe point
+			vector3()
+
+			AddQuad(vector3(a_fInnerRadius + cos(0) * tubeRadius, 0, 0), vector3(cos(degreeChange) * tubeRadius, sin(degreeChange) * tubeRadius, 0), vector3(cos(i*degreeChange) * tubeRadius, 0, 0), vector3(cos(i*degreeChange) * tubeRadius, sin(i*degreeChange) * tubeRadius, 0));
+		}
+		else {	//start a zero,		use the point from the previous triangle,												  make point for the new degree change
+			//AddTri(vector3(0, 0, 0), vector3(cos((i - 1) * degreeChange) * tubeRadius, sin((i - 1) * degreeChange) * tubeRadius, 0), vector3(cos(i* degreeChange) * tubeRadius, sin(i *degreeChange) * tubeRadius, 0));
+
+		}
+	}
+	*/
 	// -------------------------------
 
 	// Adding information about color
@@ -385,12 +474,83 @@ void MyMesh::GenerateSphere(float a_fRadius, int a_nSubdivisions, vector3 a_v3Co
 
 	Release();
 	Init();
+	
+	
+		//points for base
+		vector3 point1(0, a_fRadius, 0);
+		vector3 point2(0, -a_fRadius, 0);
+		vector3 point3(a_fRadius, 0, 0);
+		vector3 point4(-a_fRadius, 0, 0);
+		vector3 point5(0, 0, a_fRadius);
+		vector3 point6(0, 0, -a_fRadius);
 
-	// Replace this with your code
-	GenerateCube(a_fRadius * 2.0f, a_v3Color);
+		//top
+		DrawTriangles(point1, point3, point6, a_nSubdivisions, a_fRadius);
+		DrawTriangles(point1, point6, point4, a_nSubdivisions, a_fRadius);
+		DrawTriangles(point1, point4, point5, a_nSubdivisions, a_fRadius);
+		DrawTriangles(point1, point5, point3, a_nSubdivisions, a_fRadius);
+		//bottom
+		DrawTriangles(point2, point3, point5, a_nSubdivisions, a_fRadius);
+		DrawTriangles(point2, point5, point4, a_nSubdivisions, a_fRadius);
+		DrawTriangles(point2, point4, point6, a_nSubdivisions, a_fRadius);
+		DrawTriangles(point2, point6, point3, a_nSubdivisions, a_fRadius);
+	
 	// -------------------------------
 
 	// Adding information about color
 	CompleteMesh(a_v3Color);
 	CompileOpenGL3X();
 }
+
+vector3 MyMesh::FindMidpoint(vector3 pt1, vector3 pt2)
+{
+	float newX = (pt1.x + pt2.x) / 2;
+	float newY = (pt1.y + pt2.y) / 2;
+	float newZ = (pt1.z + pt2.z) / 2;
+	return vector3(newX, newY, newZ);
+}
+
+vector3 MyMesh::Normalize(vector3 point, float radius)
+{
+	float length = sqrt((point.x * point.x) + (point.y * point.y) + (point.z * point.z));
+	return vector3((point.x / length),( point.y / length),(point.z / length));
+}
+
+//recursively splits triangles to create a sphere
+void MyMesh::DrawTriangles(vector3 p1, vector3 p2, vector3 p3, int sub, float radius)
+{
+	//	 p3
+	// p4  p6
+	//p1 p5 p2
+	
+	if (sub == 0)
+	{
+		p1 = Normalize(p1, radius);
+		p2 = Normalize(p2, radius);
+		p3 = Normalize(p3, radius);
+		AddTri(p1 * radius, p2* radius, p3* radius);
+	}
+	else
+	{
+		//get all the midpoints
+		vector3 p4 = FindMidpoint(p1, p3);
+		vector3 p5 = FindMidpoint(p1, p2);
+		vector3 p6 = FindMidpoint(p2, p3);
+		//normalize the vector
+		p4 = Normalize(p4, radius);
+		p5 = Normalize(p5, radius);
+		p6 = Normalize(p6, radius);
+
+		sub -= 1;
+		//recursion
+		DrawTriangles(p4, p6, p3, sub, radius);
+		DrawTriangles(p1, p5, p4, sub, radius);
+		DrawTriangles(p5, p2, p6, sub, radius);
+		DrawTriangles(p5, p6, p4, sub, radius);
+
+	}
+}
+
+	
+		
+

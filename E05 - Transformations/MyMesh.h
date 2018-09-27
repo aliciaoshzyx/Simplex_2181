@@ -5,21 +5,7 @@ Date: 2017/05
 #ifndef __MYMESH_H_
 #define __MYMESH_H_
 
-#define USEBASICX
-#ifdef USEBASICX
-#include "BasicX\BasicX.h"
-using namespace BasicX;
-#else
-#include "Simplex\Simplex.h"
-using namespace Simplex;
-#endif // USEBASICX
-
-#include "SFML\Window.hpp"
-#include "SFML\Graphics.hpp"
-#include "SFML\OpenGL.hpp"
-
-#include "ControllerConfiguration.h"
-#include "imgui\ImGuiObject.h"
+#include "Definitions.h"
 
 class MyMesh
 {
@@ -211,9 +197,6 @@ public:
 	OUTPUT: ---
 	*/
 	void GenerateSphere(float a_fRadius, int a_nSubdivisions, vector3 a_v3Color = C_WHITE);
-	vector3 FindMidpoint(vector3 pt1, vector3 pt2);
-	vector3 Normalize(vector3 point, float radius);
-	void DrawTriangles(vector3 p1, vector3 p2, vector3 p3, int sub, float radius);
 #pragma endregion
 };
 
