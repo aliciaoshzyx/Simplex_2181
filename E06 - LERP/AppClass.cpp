@@ -2,7 +2,7 @@
 void Application::InitVariables(void)
 {
 	//Change this to your name and email
-	m_sProgrammer = "Alberto Bobadilla - labigm@rit.edu";
+	m_sProgrammer = "Alicia Pankratz - amp8040@rit.edu";
 
 	//Set the position and target of the camera
 	m_pCameraMngr->SetPositionTargetAndUpward(vector3(5.0f,3.0f,15.0f), ZERO_V3, AXIS_Y);
@@ -52,21 +52,40 @@ void Application::Display(void)
 	fTimer += m_pSystem->GetDeltaTime(uClock); //get the delta time for that timer
 
 	//calculate the current position
-	vector3 v3CurrentPos;
-	
-
-
-
+	static vector3 v3CurrentPos = m_stopsList[0];
+	static vector3 v3NextPos = m_stopsList[1];
 
 	//your code goes here
-	v3CurrentPos = vector3(0.0f, 0.0f, 0.0f);
-	//-------------------
+	static float fPercent = 0.0f;
+	static int posCount = 1;
+		//-------------------
 	
-
+	//check if a new position has been reached
+	if (fPercent >= 1.0f)
+	{
+		posCount++;
+		//check if at last position in vector
+		if (posCount >= m_stopsList.size()) {
+			posCount = 0; 
+			//move the points to match the new locations
+			v3CurrentPos = v3NextPos;
+			v3NextPos = m_stopsList[0];
+		}
+		else {
+			
+			v3CurrentPos = v3NextPos;
+			v3NextPos = m_stopsList[posCount];
+		}
+		
+		fPercent = 0.0f;
+	}
+	fPercent += 0.01f;
+	vector3 v3Position = glm::lerp(v3CurrentPos, v3NextPos, fPercent);
+	matrix4 m4Position = glm::translate(IDENTITY_M4, v3Position);
 
 	
-	matrix4 m4Model = glm::translate(v3CurrentPos);
-	m_pModel->SetModelMatrix(m4Model);
+	//matrix4 m4Model = glm::translate(v3CurrentPos);
+	m_pModel->SetModelMatrix(m4Position);
 
 	m_pMeshMngr->Print("\nTimer: ");//Add a line on top
 	m_pMeshMngr->PrintLine(std::to_string(fTimer), C_YELLOW);
