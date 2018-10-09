@@ -36,8 +36,21 @@ void Application::InitVariables(void)
 	{
 		vector3 v3Color = WaveLengthToRGB(uColor); //calculate color based on wavelength
 		m_shapeList.push_back(m_pMeshMngr->GenerateTorus(fSize, fSize - 0.1f, 3, i, v3Color)); //generate a custom torus and add it to the meshmanager
+		std::vector<vector3> path;
+		float angleChange = (2 * PI) / i;
+		currentPositions.push_back(vector3(0.0));
+		nextPositions.push_back(vector3(0.0));
+		posCounts.push_back(1);
+		for (uint j = 0; j < i; j++)
+		{
+			path.push_back(vector3(cos(j * angleChange) * fSize, sin(j * angleChange) * fSize, 0));
+		}
 		fSize += 0.5f; //increment the size for the next orbit
 		uColor -= static_cast<uint>(decrements); //decrease the wavelength
+		paths.push_back(path);
+		
+		currentPositions[i-3] = paths[i-3][0];
+		nextPositions[i-3] = paths[i-3][1];
 	}
 }
 void Application::Update(void)
@@ -64,19 +77,52 @@ void Application::Display(void)
 	*/
 	//m4Offset = glm::rotate(IDENTITY_M4, 1.5708f, AXIS_Z);
 
+	//timer stuff for lerp 
+	static float fPercent = 0.0f;
+
+	fPercent += 0.01f;
 	// draw a shapes
 	for (uint i = 0; i < m_uOrbits; ++i)
 	{
 		m_pMeshMngr->AddMeshToRenderList(m_shapeList[i], glm::rotate(m4Offset, 1.5708f, AXIS_X));
 
-		//calculate the current position
-		vector3 v3CurrentPos = ZERO_V3;
-		matrix4 m4Model = glm::translate(m4Offset, v3CurrentPos);
+		//set a lerp between points
+		
+		//posCounts[i] = 1;
+		//-------------------
+		
+	//check if a new position has been reached
+		if (fPercent >= 1.0f)
+		{
+			posCounts[i]++;
+			//check if at last position in vector
+			if (posCounts[i] >= paths[i].capacity()) {
+				posCounts[i] = 0;
+				//move the points to match the new locations
+				currentPositions[i] = nextPositions[i];
+				nextPositions[i] = paths[i][0];
+			}
+			else {
+
+				currentPositions[i] = nextPositions[i];
+				nextPositions[i] = paths[i][posCounts[i]];
+			}
+		}
+		
+		vector3 v3Position = glm::lerp(currentPositions[i], nextPositions[i], fPercent);
+		matrix4 m4Position = glm::translate(IDENTITY_M4, v3Position);
+
+	
+		//matrix4 m4Model = glm::translate(m4Offset, v3CurrentPos);
 
 		//draw spheres
-		m_pMeshMngr->AddSphereToRenderList(m4Model * glm::scale(vector3(0.1)), C_WHITE);
+		m_pMeshMngr->AddSphereToRenderList(m4Position * glm::scale(vector3(0.1)), C_WHITE);
 	}
+	
+	if(fPercent >= 1.0f)
+		fPercent = 0.0f;
 
+	std::cout << fPercent << std::endl;
 	//render list call
 	m_uRenderCallCount = m_pMeshMngr->Render();
 
