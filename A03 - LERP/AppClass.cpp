@@ -75,7 +75,7 @@ void Application::Display(void)
 	/*
 		The following offset will orient the orbits as in the demo, start without it to make your life easier.
 	*/
-	//m4Offset = glm::rotate(IDENTITY_M4, 1.5708f, AXIS_Z);
+	m4Offset = glm::rotate(IDENTITY_M4, 1.5708f, AXIS_Z);
 
 	//timer stuff for lerp 
 	static float fPercent = 0.0f;
@@ -110,7 +110,7 @@ void Application::Display(void)
 		}
 		
 		vector3 v3Position = glm::lerp(currentPositions[i], nextPositions[i], fPercent);
-		matrix4 m4Position = glm::translate(IDENTITY_M4, v3Position);
+		matrix4 m4Position = glm::translate(m4Offset, v3Position);
 
 	
 		//matrix4 m4Model = glm::translate(m4Offset, v3CurrentPos);
