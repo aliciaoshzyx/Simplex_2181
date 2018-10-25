@@ -104,6 +104,10 @@ void Simplex::MyCamera::ResetCamera(void)
 	m_v3Target = vector3(0.0f, 0.0f, 0.0f); //What I'm looking at
 	m_v3Above = vector3(0.0f, 1.0f, 0.0f); //What is above the camera
 
+	forward = glm::normalize(m_v3Target - m_v3Position);
+	upward =glm::normalize( m_v3Above - m_v3Position);
+	left = glm::normalize(glm::cross(forward, upward));
+
 	m_bPerspective = true; //perspective view? False is Orthographic
 
 	m_fFOV = 45.0f; //Field of View
@@ -132,7 +136,9 @@ void Simplex::MyCamera::SetPositionTargetAndUpward(vector3 a_v3Position, vector3
 void Simplex::MyCamera::CalculateViewMatrix(void)
 {
 	//Calculate the look at most of your assignment will be reflected in this method
-	m_m4View = glm::lookAt(m_v3Position, m_v3Target, glm::normalize(m_v3Above - m_v3Position)); //position, target, upward
+	m_m4View = glm::lookAt(m_v3Position, m_v3Target, upward) * ToMatrix4(m_qRotation); //position, target, upward
+	//i know this isnt what you should rotate because its not the actual camera but its the only thing that wont 
+	//cause seizure movement right now
 }
 
 void Simplex::MyCamera::CalculateProjectionMatrix(void)
@@ -152,11 +158,62 @@ void Simplex::MyCamera::CalculateProjectionMatrix(void)
 
 void MyCamera::MoveForward(float a_fDistance)
 {
-	//The following is just an example and does not take in account the forward vector (AKA view vector)
-	m_v3Position += vector3(0.0f, 0.0f,-a_fDistance);
-	m_v3Target += vector3(0.0f, 0.0f, -a_fDistance);
-	m_v3Above += vector3(0.0f, 0.0f, -a_fDistance);
+	m_v3Position += forward * a_fDistance;
+	m_v3Target +=forward * a_fDistance;
+	m_v3Above +=forward * a_fDistance;
+
+	forward = glm::normalize(m_v3Target - m_v3Position);
+	upward = glm::normalize(m_v3Above - m_v3Position);
+	left = glm::normalize(glm::cross(forward, upward));
 }
 
-void MyCamera::MoveVertical(float a_fDistance){}//Needs to be defined
-void MyCamera::MoveSideways(float a_fDistance){}//Needs to be defined
+void MyCamera::MoveVertical(float a_fDistance){
+	left.y = forward.y;
+	m_v3Position += upward * a_fDistance;
+	m_v3Target += upward * a_fDistance;
+	m_v3Above += upward * a_fDistance;
+
+	forward = glm::normalize(m_v3Target - m_v3Position);
+	upward = glm::normalize(m_v3Above - m_v3Position);
+	left = glm::normalize(glm::cross(forward, upward));
+}
+
+void MyCamera::MoveSideways(float a_fDistance){
+	//left.y = forward.y;
+	m_v3Position -= left * a_fDistance;
+	m_v3Target -= left * a_fDistance;
+	m_v3Above -= left * a_fDistance;
+
+	forward = glm::normalize(m_v3Target - m_v3Position);
+	upward = glm::normalize(m_v3Above - m_v3Position);
+	left = glm::normalize(glm::cross(forward, upward));
+}
+
+//for both of these, the target is what needs to be changed to get the right behavior
+//I had it working before but then it broke and now it causes weird movement on the z
+//axis too that i have been debugging for like 2 hours and cant find out 
+//all the code i had is commented out
+void Simplex::MyCamera::ChangePitch(float angle)
+{
+	m_qRotation = m_qRotation * glm::normalize(glm::angleAxis(glm::radians(angle), AXIS_X));
+	//forward = forward * m_qRotation;
+
+	//m_v3Target = m_v3Position + forward;
+
+	//different try
+	//m_v3Target = m_v3Target * glm::normalize(glm::angleAxis(angle, AXIS_X));
+
+}
+void Simplex::MyCamera::ChangeYaw(float angle)
+{
+	m_qRotation = m_qRotation * glm::normalize(glm::angleAxis(glm::radians(angle), AXIS_Y));
+	
+
+	//forward = forward * m_qRotation;
+
+	//m_v3Target = m_v3Position + forward;
+
+	//different try
+	//m_v3Target = m_v3Target * glm::normalize(glm::angleAxis(angle, AXIS_Y));
+	
+}
