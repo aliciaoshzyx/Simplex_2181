@@ -286,7 +286,130 @@ uint MyRigidBody::SAT(MyRigidBody* const a_pOther)
 	Simplex that might help you [eSATResults] feel free to use it.
 	(eSATResults::SAT_NONE has a value of 0)
 	*/
+	float r1, r2;
+	matrix3 R, AbsR;
+
+	
+	//get center point
+	vector3 object1Center = GetCenterGlobal();
+	vector3 object2Center = a_pOther->GetCenterGlobal();
+
+	/*GET AXES*/
+	std::vector<vector3> object1Axes;
+	std::vector<vector3> object2Axes;
+
+	//object 1
+	vector3 x = vector3(1.0f, 0.0f, 0.0f);
+	x = m_m4ToWorld * vector4(x, 0.0f);
+	x = glm::normalize(x);
+	object1Axes.push_back(x);
+	vector3 y = vector3(0.0f, 1.0f, 0.0f);
+	y = m_m4ToWorld * vector4(y, 0.0f) ;
+	y = glm::normalize(y);
+	object1Axes.push_back(y);
+	vector3 z = vector3(0.0f, 0.0f, 1.0f);
+	z = m_m4ToWorld* vector4(z, 0.0f);
+	z = glm::normalize(z);
+	object1Axes.push_back(z);
+
+	//object2
+	vector3 x2 = vector3(1.0f, 0.0f, 0.0f);
+	x2 = a_pOther->GetModelMatrix()* vector4(x2, 0.0f);
+	x2 = glm::normalize(x2);
+	object2Axes.push_back(x2);
+	vector3 y2 = vector3(0.0f, 1.0f, 0.0f);
+	y2 = a_pOther->GetModelMatrix()* vector4(y2, 0.0f);
+	y2 = glm::normalize(y2);
+	object2Axes.push_back(y2);
+	vector3 z2 = vector3(0.0f, 0.0f, 1.0f);
+	z2 = a_pOther->GetModelMatrix()* vector4(z2, 0.0f);
+	z2 = glm::normalize(z2);
+	object2Axes.push_back(z2);
+
+	//halfwidth
+	vector3 object1Half = m_v3HalfWidth;
+	vector3 object2Half = a_pOther->GetHalfWidth();
+
+	//rotation matrix for b in a's coordinates
+	for (int i = 0; i < 3; i++){
+		for (int j = 0; j < 3; j++){
+			R[i][j] = dot(object1Axes[i], object2Axes[j]);
+		}
+	}
+
+	//translation vector
+	vector3 t = object2Center - object1Center;
+	t = vector3(dot(t, object1Axes[0]), dot(t, object1Axes[1]), dot(t, object1Axes[2]));
+
+	for (int i = 0; i < 3; i++){
+		for (int j = 0; j < 3; j++){
+			AbsR[i][j] = abs(R[i][j]) + FLT_EPSILON;
+		}
+	}
+
+	/*TESTS*/
+	//axes x1, y1, z1, 
+	for (int i = 0; i < 3; i++)
+	{
+		r1 = object1Half[i];
+		r2 = object2Half[0] * AbsR[i][0] + object2Half[1] * AbsR[i][1] + object2Half[2] * AbsR[i][2];
+		if (abs(t[i]) > (r1 + r2)) return 1;
+	}
+
+	//axes x2, y2, z2
+	for (int i = 0; i < 3; i++)
+	{
+		r1 = object1Half[0] * AbsR[0][i] + object1Half[1] * AbsR[1][i] + object1Half[2] * AbsR[2][i];
+		r2 = object2Half[i];
+		if (abs(t[0] * R[0][i] + t[1] * R[1][i] + t[2] * R[2][i]) > (r1 + r2)) return 1;
+	}
+
+	//x1 x x2
+	r1 = object1Half[1] * AbsR[2][0] + object1Half[2] * AbsR[1][0];
+	r2 = object2Half[1] * AbsR[0][2] + object2Half[2] * AbsR[0][1];
+	if (abs(t[2] * R[1][0] - t[1] * R[2][0]) > r1 + r2) return 1;
+
+	//x1 x y2
+	r1 = object1Half[1] * AbsR[2][1] + object1Half[2] * AbsR[1][1];
+	r2 = object2Half[0] * AbsR[0][2] + object2Half[2] * AbsR[0][0];
+	if (abs(t[2] * R[1][1] - t[1] * R[2][1]) > r1 + r2) return 1;
+
+	//x1 x z2
+	r1 = object1Half[1] * AbsR[2][2] + object1Half[2] * AbsR[1][2];
+	r2 = object2Half[0] * AbsR[0][1] + object2Half[1] * AbsR[0][0];
+	if (abs(t[2] * R[1][2] - t[1] * R[2][2]) > r1 + r2) return 1;
+
+	//y1 x x2
+	r1 = object1Half[0] * AbsR[2][0] + object1Half[2] * AbsR[0][0];
+	r2 = object2Half[1] * AbsR[1][2] + object2Half[2] * AbsR[1][1];
+	if (abs(t[0] * R[2][0] - t[2] * R[0][0]) > r1 + r2) return 1;
+
+	//y1 x y2
+	r1 = object1Half[0] * AbsR[2][1] + object1Half[2] * AbsR[0][1];
+	r2 = object2Half[0] * AbsR[1][2] + object2Half[2] * AbsR[1][0];
+	if (abs(t[0] * R[2][1] - t[2] * R[0][1]) > r1 + r2) return 1;
+
+	//y1 x z2
+	r1 = object1Half[0] * AbsR[2][2] + object1Half[2] * AbsR[0][2];
+	r2 = object2Half[0] * AbsR[1][1] + object2Half[1] * AbsR[1][0];
+	if (abs(t[0] * R[2][2] - t[2] * R[0][2]) > r1 + r2) return 1;
+
+	//z1 x x2
+	r1 = object1Half[0] * AbsR[1][0] + object1Half[1] * AbsR[0][0];
+	r2 = object2Half[1] * AbsR[2][2] + object2Half[2] * AbsR[2][1];
+	if (abs(t[1] * R[0][0] - t[0] * R[1][0]) > r1 + r2) return 1;
+
+	//z1 x y2
+	r1 = object1Half[0] * AbsR[1][1] + object1Half[1] * AbsR[0][1];
+	r2 = object2Half[0] * AbsR[2][2] + object2Half[2] * AbsR[2][0];
+	if (abs(t[1] * R[0][1] - t[0] * R[1][1]) > r1 + r2) return 1;
+
+	//z1 x z2
+	r1 = object1Half[0] * AbsR[1][2] + object1Half[1] * AbsR[0][2];
+	r2 = object2Half[0] * AbsR[2][1] + object2Half[1] * AbsR[2][0];
+	if (abs(t[1] * R[0][2] - t[0] * R[1][2]) > r1 + r2) return 1;
+
 
 	//there is no axis test that separates this two objects
-	return eSATResults::SAT_NONE;
+	return 0;
 }
