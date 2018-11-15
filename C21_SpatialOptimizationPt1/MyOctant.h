@@ -22,11 +22,13 @@ class MyOctant
 	uint m_iID = 0;
 	MyOctant* m_pParent = nullptr;
 	MyOctant* m_pChild[8];
+	uint m_nlevel = 0;
+	static uint count;
 public:
 	void Display(void);
 	void IsColliding(void);
 	void Subdivide(void);
-	MyOctant(vector3 v3Size);
+	MyOctant(vector3 a_v3Center, float a_fSize);
 	/*
 	Usage: Constructor
 	Arguments: ---
