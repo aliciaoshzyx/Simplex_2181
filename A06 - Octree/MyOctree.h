@@ -2,8 +2,8 @@
 Programmer: Alberto Bobadilla (labigm@gmail.com)
 Date: 2017/06
 ----------------------------------------------*/
-#ifndef __MYOCTANT_H_
-#define __MYOCTANT_H_
+#ifndef __MYOCTREE_H_
+#define __MYOCTREE_H_
 
 #include "Simplex\Simplex.h"
 #include "MyEntityManager.h"
@@ -12,58 +12,100 @@ namespace Simplex
 {
 
 //System Class
-class MyOctant
+class MyOctree
 {
 	int m_nData = 0; //Number of elements in the list of elements
 	std::vector<int> m_lData; //list of elements
+
+	static uint numOctree;
+	static uint maxLevel;
+	static uint idealCount;
+
+	uint m_iID;
+	uint m_iLevel;
+	uint numChildren;
+
+	float m_fSize = 0.0f;
+
 	MeshManager* m_pMeshMngr = nullptr;
-	MyEntityManager* m_pEntityMngr = nullptr;
-	MyRigidBody* m_pRigidBody = nullptr;
-	uint m_iID = 0;
-	MyOctant* m_pParent = nullptr;
-	MyOctant* m_pChild[8];
-	uint m_nlevel = 0;
-	static uint count; //number of octants
-	static uint idealEntityCount; 
-	static uint numEntities;
-	uint numChildren = 0;
+	MyEntityManager* m_pMyEntityMngr = nullptr;
+
+	vector3 v3Center = vector3(0.0f);
+	vector3 m_v3Min = vector3(0.0f);
+	vector3 m_v3Max = vector3(0.0f);
+
+	MyOctree* m_pRoot = nullptr;
+	MyOctree* m_pParent = nullptr;
+	MyOctree* m_pChildren[8];
+	std::vector<MyOctree*> m_lChildren;
+	std::vector<int> m_lEntities;
+
 public:
-	void Display(void);
-	void IsColliding(void);
-	void Subdivide(void);
-	uint GetOctantCount(void);
-	MyOctant(vector3 a_v3Center, float a_fSize);
 	/*
 	Usage: Constructor
 	Arguments: ---
 	Output: class object instance
 	*/
-	MyOctant(void);
+	MyOctree(uint a_nMaxLevel, uint a_nIdealEntityCount);
+	/*
+	Usage: Constructor
+	Arguments: ---
+	Output: class object instance
+	*/
+	MyOctree(vector3 a_v3Center, float a_fSize);
 	/*
 	Usage: Copy Constructor
 	Arguments: class object to copy
 	Output: class object instance
 	*/
-	MyOctant(MyOctant const& other);
+	MyOctree(MyOctree const& other);
 	/*
 	Usage: Copy Assignment Operator
 	Arguments: class object to copy
 	Output: ---
 	*/
-	MyOctant& operator=(MyOctant const& other);
+	MyOctree& operator=(MyOctree const& other);
 	/*
 	Usage: Destructor
 	Arguments: ---
 	Output: ---
 	*/
-	~MyOctant(void);
+	~MyOctree(void);
 
 	/*
 	Usage: Changes object contents for other object's
 	Arguments: other -> object to swap content from
 	Output: ---
 	*/
-	void Swap(MyOctant& other);
+	void Swap(MyOctree& other);
+
+	float GetSize();
+
+	vector3 GetCenterGlobal();
+
+	vector3 GetMinGlobal();
+
+	vector3 GetMaxGlobal();
+
+	bool IsColliding(uint a_iRBIndex);
+
+	void Display(uint a_iIndex, vector3 a_v3Color = C_YELLOW);
+
+	void Display(vector3 a_v3Color);
+
+	void ClearEntityList();
+
+	void Subdivide();
+
+	bool ContainsMoreThan(uint a_nEntities);
+
+	void DeleteChildren();
+
+	void ConstructTree(uint a_iMaxLevel);
+
+	void AssignIDToEntity();
+
+	uint GetOctantCount();
 
 	/*
 	Usage: Gets data member
@@ -106,11 +148,13 @@ private:
 	Output: ---
 	*/
 	void Init(void);
+
+	void ConstructList();
 };//class
 
 } //namespace Simplex
 
-#endif //__MyOctant_H__
+#endif //__MyOctree_H__
 
 /*
 USAGE:

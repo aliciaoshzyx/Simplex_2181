@@ -198,6 +198,7 @@ public:
 	ARGUMENTS: uint a_uIndex -> index (from the list) of the entity queried if < 0 will use the last one
 	OUTPUT: ---
 	*/
+	void ClearDimensionSetAll(void);
 	void ClearDimensionSet(uint a_uIndex);
 	/*
 	USAGE: will remove all dimensions from entity

@@ -333,6 +333,13 @@ void Simplex::MyEntityManager::RemoveDimension(String a_sUniqueID, uint a_uDimen
 		pTemp->RemoveDimension(a_uDimension);
 	}
 }
+void Simplex::MyEntityManager::ClearDimensionSetAll(void)
+{
+	for (uint i = 0; i < m_uEntityCount; ++i)
+	{
+		ClearDimensionSet(i);
+	}
+}
 void Simplex::MyEntityManager::ClearDimensionSet(uint a_uIndex)
 {
 	//if the list is empty return

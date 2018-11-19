@@ -2,9 +2,16 @@
 using namespace Simplex;
 //  MyOctant
 uint MyOctant::count = 0;
+uint MyOctant::idealEntityCount = 5;
+uint MyOctant::numEntities = 0;
+
+uint MyOctant::GetOctantCount(void) {
+	return count;
+}
 void MyOctant::Init(void)
 {
 	m_nData = 0;
+
 	m_pMeshMngr = MeshManager::GetInstance();
 	m_pEntityMngr = MyEntityManager::GetInstance();
 	
@@ -23,8 +30,6 @@ MyOctant::MyOctant() {
 	uint iEntityCount = l_Entity_List.size();
 	std::vector<vector3> v3MaxMin_list;
 
-	//marker for root
-	//constructor for non root subdivisions 
 	for (uint i = 0; i < iEntityCount; i++)
 	{
 		MyRigidBody* pRG = l_Entity_List[i]->GetRigidBody();
@@ -37,18 +42,34 @@ MyOctant::MyOctant() {
 	}
 	m_pRigidBody = new MyRigidBody(v3MaxMin_list);
 	m_pRigidBody->MakeCubic();
+
+	
 	Subdivide();
 }
 Simplex::MyOctant::MyOctant(vector3 a_v3Center, float a_fSize)
 {
 	Init();
+	std::vector<MyEntity*> l_Entity_List = m_pEntityMngr->GetEntityList();
 	std::vector<vector3> v3MaxMin_list;
 	v3MaxMin_list.push_back(vector3(a_v3Center - vector3(a_fSize)));
 	v3MaxMin_list.push_back(vector3(a_v3Center + vector3(a_fSize)));
 	m_pRigidBody = new MyRigidBody(v3MaxMin_list);
 	count++;
 	m_iID = count;
-	
+	std::cout << m_iID << std::endl;
+	IsColliding();
+	/*
+	for each(MyEntity* e in l_Entity_List)
+	{
+		MyRigidBody* rb = e->GetRigidBody();
+		if (rb->IsColliding(m_pRigidBody))
+		{
+			e->AddDimension(m_iID);
+			numEntities++;
+			std::cout << m_iID << std::endl;
+		}
+	}
+	*/
 	//what level to go into
 	//hoe many objects per cotant
 }
@@ -77,7 +98,13 @@ void MyOctant::Swap(MyOctant& other)
 }
 void MyOctant::Release(void)
 {
+	SafeDelete(m_pRigidBody);
 	//release children 
+	for(int i = 0; i < 8; i++)
+	{
+		delete m_pChild[i];
+		m_pChild[i] = nullptr;
+	}
 	delete[] m_pChild;
 	m_lData.clear();
 }
@@ -104,13 +131,15 @@ void Simplex::MyOctant::IsColliding(void)
 		if (pRB->IsColliding(m_pRigidBody))
 		{
 			l_Entity_List[i]->AddDimension(m_iID); //should have index for child subdivision
+			numEntities++;
 		}
 	}
 }
 /*CHECK FOR NUMBER OF OBJECTS FOR IF IT SHOUDL SUBDIVIDE WHEN CALLED AGAIN*/
 void Simplex::MyOctant::Subdivide(void)
 {
-	if (m_nlevel > 2)
+
+	if (m_nlevel > 2) //|| numEntities < idealEntityCount)
 	{
 		return;
 	}
@@ -118,6 +147,7 @@ void Simplex::MyOctant::Subdivide(void)
 	vector3 v3HalfWidth = m_pRigidBody->GetHalfWidth();
 	float fSize = v3HalfWidth.x / 2; 
 	float fCenters = fSize;
+	numChildren = 8;
 	
 	m_pChild[0] = new MyOctant(v3Center + vector3(fCenters, fCenters, fCenters), fSize);
 	m_pChild[1] = new MyOctant(v3Center + vector3(-fCenters, fCenters, fCenters), fSize);
